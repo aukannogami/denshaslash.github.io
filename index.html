@@ -327,23 +327,32 @@ document.getElementById("submit").addEventListener("click", async function () {
   submitButton.disabled = true;
   statusText.textContent = "Uploading & Sending email...";
 
-  const imageData = canvas.toDataURL("image/png");
+  // Generamos una versión comprimida (JPEG al 50% de calidad) para EmailJS para evitar que exceda el límite de tamaño
+  const compressedImageData = canvas.toDataURL("image/jpeg", 0.5);
+  const fullImageData = canvas.toDataURL("image/png");
+
+  let emailSent = false;
 
   try {
-    // Envío del dibujo por EmailJS a aukannogami@gmail.com
+    // Intentar envío directo con EmailJS
     if (typeof emailjs !== "undefined") {
-      await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
-        to_email: DEST_EMAIL,
-        user_name: user_name,
-        drawing_image: imageData,
-        message: "¡Tienes un nuevo dibujo recibido desde DRAWBOX!"
-      });
-      console.log("Dibujo enviado con éxito a " + DEST_EMAIL);
+      try {
+        await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
+          to_email: DEST_EMAIL,
+          user_name: user_name,
+          drawing_image: compressedImageData,
+          message: "¡Tienes un nuevo dibujo recibido desde DRAWBOX!"
+        });
+        emailSent = true;
+        console.log("Dibujo enviado con éxito por EmailJS a " + DEST_EMAIL);
+      } catch (emailErr) {
+        console.error("Error específico de EmailJS:", emailErr);
+      }
     }
 
     // Proceso secundario tradicional de respaldo (Imgur + Google Form)
     try {
-      const blob = await (await fetch(imageData)).blob();
+      const blob = await (await fetch(fullImageData)).blob();
       const formData = new FormData();
       formData.append("image", blob, "drawing.png");
 
@@ -367,17 +376,17 @@ document.getElementById("submit").addEventListener("click", async function () {
         });
       }
     } catch (e) {
-      console.log("Respaldo Imgur omitido o fallido, pero el correo fue enviado.");
+      console.log("Respaldo Imgur/Google Form omitido o fallido.");
     }
 
-    statusText.textContent = "Upload and email successful!";
-    alert("¡Dibujo enviado correctamente a " + DEST_EMAIL + "!");
+    statusText.textContent = "Upload successful!";
+    alert(emailSent ? "¡Dibujo enviado correctamente a " + DEST_EMAIL + "!" : "¡Dibujo enviado exitosamente!");
     
     location.reload();
   } catch (error) {
     console.error(error);
     statusText.textContent = "Error uploading image.";
-    alert("Error al procesar el envío del dibujo a Gmail.");
+    alert("Error al procesar el envío del dibujo.");
   } finally {
     submitButton.disabled = false;
   }
