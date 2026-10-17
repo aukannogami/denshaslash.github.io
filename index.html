@@ -195,8 +195,10 @@ function updatePenStyle() {
 
 function setPosition(e) {
   const rect = canvas.getBoundingClientRect();
-  pos.x = e.clientX - rect.left;
-  pos.y = e.clientY - rect.top;
+  const clientX = e.clientX !== undefined ? e.clientX : (e.targetTouches && e.targetTouches[0] ? e.targetTouches[0].clientX : 0);
+  const clientY = e.clientY !== undefined ? e.clientY : (e.targetTouches && e.targetTouches[0] ? e.targetTouches[0].clientY : 0);
+  pos.x = (clientX - rect.left) * (canvas.width / rect.width);
+  pos.y = (clientY - rect.top) * (canvas.height / rect.height);
 }
 
 
