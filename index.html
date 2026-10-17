@@ -8,8 +8,6 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="#a9db6e" />
   <title>DRAWBOX</title>
     <script src="https://cdn.jsdelivr.net/npm/theme-change@2.0.2/index.js"></script>
-    <!-- Librería para envío directo a Email/Gmail sin necesidad de Imgur -->
-    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
 <link rel="stylesheet" href="db.css">
  <link rel="stylesheet" href="db2.css">
  <link rel="shortcut icon" href="https://file.garden/Ze88s1ucmRDZDhMX/pixels/841.gif">
@@ -87,15 +85,9 @@
    const IMGUR_ID = IMAGE_ID;
    const IMAGE_APPROVAL = true;
    
-   // Configuración de EmailJS para recibir en aukannogami@gmail.com
+   // Pega aquí la URL que te genera Google Apps Script en el Paso 1
+   const GAS_WEBAPP_URL = "https://script.google.com/macros/s/AKfycbxlaEHDgruxPAEjkVhWJa4QzKGpen3_nKLg2cpsh0elKGh-YnWb9nYRTZVxUkGzTJIEeQ/exec";
    const DEST_EMAIL = "aukannogami@gmail.com";
-   const EMAILJS_PUBLIC_KEY = "RZ4wSKy6Cl3S_y9jO";
-   const EMAILJS_SERVICE_ID = "service_6gv78uk";
-   const EMAILJS_TEMPLATE_ID = "template_8erhgd8";
-
-   if (typeof emailjs !== "undefined") {
-     emailjs.init(EMAILJS_PUBLIC_KEY);
-   }
 
    /*
             
@@ -315,82 +307,49 @@ function Clear() {
   
 }
 
-// code to upload image & send to Gmail directly
+// Envío directo a Gmail mediante Google Script
 document.getElementById("submit").addEventListener("click", async function () {
-    if (confirm("Are you ready to submit your image?") == true) {
+  if (confirm("Are you ready to submit your image?") == true) {
 
-  if (start_index <= -1) { alert("I know art is subjective and all, but you can't submit an empty canvas!"); }
-  else {   
-  const submitButton = document.getElementById("submit");
-  const statusText = document.getElementById("status");
+    if (start_index <= -1) { 
+      alert("I know art is subjective and all, but you can't submit an empty canvas!"); 
+    } else {   
+      const submitButton = document.getElementById("submit");
+      const statusText = document.getElementById("status");
 
-  submitButton.disabled = true;
-  statusText.textContent = "Uploading & Sending email...";
+      submitButton.disabled = true;
+      statusText.textContent = "Uploading & Sending email...";
 
-  // Generamos una versión comprimida (JPEG al 50% de calidad) para EmailJS para evitar que exceda el límite de tamaño
-  const compressedImageData = canvas.toDataURL("image/jpeg", 0.5);
-  const fullImageData = canvas.toDataURL("image/png");
+      const imageData = canvas.toDataURL("image/png");
 
-  let emailSent = false;
-
-  try {
-    // Intentar envío directo con EmailJS
-    if (typeof emailjs !== "undefined") {
       try {
-        await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
-          to_email: DEST_EMAIL,
-          user_name: user_name,
-          drawing_image: compressedImageData,
-          message: "¡Tienes un nuevo dibujo recibido desde DRAWBOX!"
-        });
-        emailSent = true;
-        console.log("Dibujo enviado con éxito por EmailJS a " + DEST_EMAIL);
-      } catch (emailErr) {
-        console.error("Error específico de EmailJS:", emailErr);
+        if (GAS_WEBAPP_URL && GAS_WEBAPP_URL !== "REEMPLAZAR_CON_TU_URL_DE_GOOGLE_APPS_SCRIPT") {
+          await fetch(GAS_WEBAPP_URL, {
+            method: "POST",
+            mode: "no-cors",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              image: imageData,
+              user_name: user_name
+            })
+          });
+          statusText.textContent = "Drawing sent to email!";
+          alert("¡Dibujo enviado correctamente a " + DEST_EMAIL + "!");
+        } else {
+          alert("Por favor configura la URL de Google Apps Script en el código.");
+        }
+        
+        location.reload();
+      } catch (error) {
+        console.error(error);
+        statusText.textContent = "Error sending drawing.";
+        alert("Ocurrió un error al enviar el dibujo.");
+      } finally {
+        submitButton.disabled = false;
       }
     }
-
-    // Proceso secundario tradicional de respaldo (Imgur + Google Form)
-    try {
-      const blob = await (await fetch(fullImageData)).blob();
-      const formData = new FormData();
-      formData.append("image", blob, "drawing.png");
-
-      const response = await fetch("https://api.imgur.com/3/image", {
-        method: "POST",
-        headers: { Authorization: `Client-ID ${CLIENT_ID}` },
-        body: formData,
-      });
-
-      const data = await response.json();
-      if (data.success) {
-        const imageUrl = data.data.link;
-        const googleFormData = new FormData();
-        googleFormData.append(IMGUR_ID, imageUrl);
-        googleFormData.append(NAME_ID, user_name);
-
-        await fetch(GOOGLE_FORM_URL, {
-          method: "POST",
-          body: googleFormData,
-          mode: "no-cors",
-        });
-      }
-    } catch (e) {
-      console.log("Respaldo Imgur/Google Form omitido o fallido.");
-    }
-
-    statusText.textContent = "Upload successful!";
-    alert(emailSent ? "¡Dibujo enviado correctamente a " + DEST_EMAIL + "!" : "¡Dibujo enviado exitosamente!");
-    
-    location.reload();
-  } catch (error) {
-    console.error(error);
-    statusText.textContent = "Error uploading image.";
-    alert("Error al procesar el envío del dibujo.");
-  } finally {
-    submitButton.disabled = false;
   }
-  }}});
+});
 
 
 // display gallery of images
