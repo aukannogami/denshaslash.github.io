@@ -1,0 +1,28 @@
+:root {
+	--Background-image:url("https://i.pinimg.com/736x/11/14/a0/1114a06d262b4b12925c3af86c466cb8.jpg");
+	--Background-image-2:url("https://i.pinimg.com/1200x/03/cb/ce/03cbce2b82887de0e0790f5e29a5f529.jpg");
+	--Background-image-3:url("https://i.pinimg.com/736x/11/14/a0/1114a06d262b4b12925c3af86c466cb8.jpg");
+	--Mefle-stoic:url("https://file.garden/Ze88s1ucmRDZDhMX/pixels/001.gif");
+	--Goofy-chibi:url("https://file.garden/Ze88s1ucmRDZDhMX/pixels/001.gif");
+	--Goofy-mefle:url("https://file.garden/Ze88s1ucmRDZDhMX/pixels/001.gif");
+	--Somber-mefle:url("https://file.garden/Ze88s1ucmRDZDhMX/pixels/001.gif");
+	--mefle-greets:url("https://file.garden/Ze88s1ucmRDZDhMX/pixels/001.gif");
+	--orb:url("https://file.garden/Ze88s1ucmRDZDhMX/pixels/647.gif");
+	--tiny-orbs:url("https://file.garden/Ze88s1ucmRDZDhMX/pixels/647.gif");
+	--Gallery-color:rgba(224, 150, 64, 0.43);
+	--primary-color: #d97736; 
+	--secondary-color: #f2a663; 
+	--third-color: #7a3d0d; 
+	--forth-color: #fcf9f7;
+	--fifth-color: #ff9e61; 
+	--sixth-color: #c28348; 
+	--seventh-color: #ffebd9; 
+	--eight-color: #fac473; 
+	--ninth-color: white; 
+	--tenth-color: black; 
+	--eleventh-color: #f2f0f0; 
+	--twelfth-color: #bfbfbf; 
+	--complement-color: #fa3232; 
+	--complement-2: #5887f5;
+	--complement-3: #ffe97a;
+}
