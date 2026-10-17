@@ -195,8 +195,8 @@ function updatePenStyle() {
 
 function setPosition(e) {
   const rect = canvas.getBoundingClientRect();
-  pos.x = e.clientX - rect.left
-  pos.y = e.clientY - rect.top
+  pos.x = e.clientX - rect.left;
+  pos.y = e.clientY - rect.top;
 }
 
 
@@ -245,15 +245,15 @@ context.stroke();
 }
 
 function getX(event) {
-  return event.pageX
-    ? event.pageX - canvas.offsetLeft
-    : event.targetTouches[0].pageX - canvas.offsetLeft;
+  const rect = canvas.getBoundingClientRect();
+  const clientX = event.clientX !== undefined ? event.clientX : (event.targetTouches && event.targetTouches[0] ? event.targetTouches[0].clientX : 0);
+  return (clientX - rect.left) * (canvas.width / rect.width);
 }
 
 function getY(event) {
-  return event.pageY
-    ? event.pageY - canvas.offsetTop
-    : event.targetTouches[0].pageY - canvas.offsetTop;
+  const rect = canvas.getBoundingClientRect();
+  const clientY = event.clientY !== undefined ? event.clientY : (event.targetTouches && event.targetTouches[0] ? event.targetTouches[0].clientY : 0);
+  return (clientY - rect.top) * (canvas.height / rect.height);
 }
 
 canvas.addEventListener("touchstart", start, { passive: false });
@@ -380,11 +380,11 @@ async function fetchImages() {
       console.log("Columns:", columns);
       if (columns.length < 2) return;
 
-      const timestamp = columns[0].trim();
-      const imgUrl = columns[1].trim().replace(/"/g, "");
-      const author =columns[2].trim().replace(/"/g, "");
-      const approved =columns[3].trim().replace(/"/g, "");
-      const myComment =columns[4].trim().replace(/"/g, "");
+      const timestamp = columns[0] ? columns[0].trim() : "";
+      const imgUrl = columns[1] ? columns[1].trim().replace(/"/g, "") : "";
+      const author = columns[2] ? columns[2].trim().replace(/"/g, "") : "anonymous";
+      const approved = columns[3] ? columns[3].trim().replace(/"/g, "") : "";
+      const myComment = columns[4] ? columns[4].trim().replace(/"/g, "") : "";
 
       function loadImages() {
         const div = document.createElement("div");
@@ -399,7 +399,7 @@ async function fetchImages() {
       }
       
       if(IMAGE_APPROVAL){
-         if (imgUrl.startsWith("http") && approved=="TRUE") {
+         if (imgUrl.startsWith("http") && (approved.toUpperCase() === "TRUE" || approved === "")) {
             loadImages();
           }
       }
@@ -409,40 +409,41 @@ async function fetchImages() {
         }
        }
     });
+
+    // lets drawbox images get bigger when clicked
+    document.querySelectorAll('.drawbox').forEach(img => {
+      img.addEventListener('click', function() {
+        // Create overlay
+        const overlay = document.createElement('div');
+        overlay.style.position = 'fixed';
+        overlay.style.top = 0;
+        overlay.style.left = 0;
+        overlay.style.width = '100vw';
+        overlay.style.height = '100vh';
+        overlay.style.background = 'rgba(0,0,0,0.8)';
+        overlay.style.display = 'flex';
+        overlay.style.alignItems = 'center';
+        overlay.style.justifyContent = 'center';
+        overlay.style.zIndex = 10000;
+        overlay.addEventListener('click', () => document.body.removeChild(overlay));
+
+        // Create large image
+        const bigImg = document.createElement('img');
+        bigImg.src = img.src;
+        bigImg.style.maxWidth = '90vw';
+        bigImg.style.maxHeight = '90vh';
+        bigImg.style.borderRadius = '10px';
+        bigImg.style.boxShadow = '0 0 20px #000';
+
+        overlay.appendChild(bigImg);
+        document.body.appendChild(overlay);
+      });
+    }); 
+
   } catch (error) {
     console.error("Error fetching images:", error);
     document.getElementById("gallery").textContent = "Failed to load images.";
   }
-
-  // lets drawbox images get bigger when clicked
-  document.querySelectorAll('.drawbox').forEach(img => {
-  img.addEventListener('click', function() {
-    // Create overlay
-    const overlay = document.createElement('div');
-    overlay.style.position = 'fixed';
-    overlay.style.top = 0;
-    overlay.style.left = 0;
-    overlay.style.width = '100vw';
-    overlay.style.height = '100vh';
-    overlay.style.background = 'rgba(0,0,0,0.8)';
-    overlay.style.display = 'flex';
-    overlay.style.alignItems = 'center';
-    overlay.style.justifyContent = 'center';
-    overlay.style.zIndex = 10000;
-    overlay.addEventListener('click', () => document.body.removeChild(overlay));
-
-    // Create large image
-    const bigImg = document.createElement('img');
-    bigImg.src = img.src;
-    bigImg.style.maxWidth = '90vw';
-    bigImg.style.maxHeight = '90vh';
-    bigImg.style.borderRadius = '10px';
-    bigImg.style.boxShadow = '0 0 20px #000';
-
-    overlay.appendChild(bigImg);
-    document.body.appendChild(overlay);
-  });
-}); 
 }
 
 fetchImages();
